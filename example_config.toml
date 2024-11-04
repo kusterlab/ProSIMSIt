@@ -1,0 +1,26 @@
+# Configuration file for ProSIMSIt
+
+[general]
+output = "<Path to output>"
+threads = "<Number of threads>"
+tmt_ms_level = "<ms2/ms3>"
+
+[inputs]
+maxquant_results = "<Path to MaxQuant combined/txt/>"
+spectra = "<Path to raw or mzML file folder>"
+spectra_type = "<raw/mzml>"
+
+[prosit]
+intensity_model = "<Prosit_2020_intensity_TMT/>"
+irt_model = "<Prosit_2020_irt_TMT>"
+prediction_server = "koina.wilhelmlab.org:443"
+ssl = true
+ms_analyzer = "<ot/it>"
+
+[simsi]
+stringency = "10"
+max_pep = "5"
+
+[picked_protein_group_fdr]
+fasta = "<Path to .fasta file used for database search>"
+enzyme = "<Enzyme used for database search>"

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "prosimsit"
+version = "0.1.0"
+description = "Combining Prosit and SIMSI-Transfer"
+authors = ["Firas Hamood <firas.hamood@tum.de>", "Matthew The <matthew.the@tum.de>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/kusterlab/ProSIMSIt"
+repository = "https://github.com/kusterlab/ProSIMSIt"
+keywords = ["mass spectrometry", "missing values", "clustering", "proteomics", "quantification"]
+
+[tool.poetry.dependencies]
+python = ">=3.9.0,<3.11.0"
+simsi-transfer = { git = "https://github.com/kusterlab/SIMSI-Transfer.git", branch = "keep_all_modseq" }
+picked-group-fdr = "0.7.2"
+oktoberfest = { git = "https://github.com/wilhelm-lab/oktoberfest.git", branch = "features/ptm_pipeline" }
+pyarrow = "16.0.0"
+tomli = "^2.0.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
