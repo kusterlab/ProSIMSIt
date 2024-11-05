@@ -45,20 +45,9 @@ def main(argv):
     logger.info(f'{__copyright__}')
     logger.info(f'Issued command: {os.path.basename(__file__)} {" ".join(map(str, argv))}')
 
-    # logger.info(f'Input parameters:')
-    # logger.info(f"MaxQuant txt folder = {mq_txt_dirs}")
-    # logger.info(f"Raw file folder = {raw_dirs}")
-    # logger.info(f"Stringencies = {','.join(map(str, pvals))}")
-    # logger.info(f"Output folder = {args.output_dir}")
-    # logger.info(f"Cache folder = {args.cache_dir}")
-    # logger.info(f"Number of threads = {args.num_threads}")
-    # logger.info(f"TMT correction file = {tmt_correction_files}")
-    # logger.info(f"TMT MS level = {tmt_ms_level}")
-    # logger.info('')
-    #
-    # logger.info(f'Starting ProSIMSIt')
-    # logger.info('')
-    #
+    logger.info(f'Starting ProSIMSIt')
+    logger.info('')
+
 
     logger.info(f'Retrieving .raw files')
     msms = read_msms_singlecol(maxquant_dir, 'Raw file')
@@ -121,10 +110,10 @@ def main(argv):
     dir_msms = msms_for_prosit_2
 
     conf = prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, dir_msms, output_dir)
-#    spectra_files = preprocess_spectra_files(conf)
-#    annotate_library(spectra_files, conf)
-#    generate_pred_files(conf)
-#    calculate_featuers(spectra_files, conf)
+    spectra_files = preprocess_spectra_files(conf)
+    annotate_library(spectra_files, conf)
+    generate_pred_files(conf)
+    calculate_featuers(spectra_files, conf)
     logger.info(f'Finished second Oktoberfest run')
 
     #####
