@@ -153,9 +153,13 @@ def main(argv):
         subprocess.run(cmd, shell=True, check=True)
     logger.info(f'Finished Percolator run')
 
-    # logger.info(f'Plotting summary plots...')
-    # # plotting
-    # logger.info(f'Finished plotting summary plots.')
+    #####
+
+    config['general']['plotting'] = False
+    if config['general']['plotting']:
+        logger.info(f'Plotting summary plots...')
+        # plotting
+        logger.info(f'Finished plotting summary plots.')
 
     logger.info(f'Assembling evidence file for Picked Protein Group FDR')
     picked_dir = output_dir / 'ProSIMSIt/PickedProteinGroupFDR'
