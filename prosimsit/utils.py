@@ -27,7 +27,7 @@ def convert_raw_files(
 def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     prosit_config = PROSIT_CONFIG.copy()
     prosit_config['inputs']['spectra'] = str(mzml_folder)
-    prosit_config['inputs']['search_results'] = config['inputs']['maxquant_results'] + '/msms.txt'
+    prosit_config['inputs']['search_results'] = config['inputs']['maxquant_results']
     prosit_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')
     prosit_config['models'] = {'intensity': config['prosit']['intensity_model'], 'irt': config['prosit']['irt_model']}
     prosit_config['prediction_server'] = config['prosit']['prediction_server']
