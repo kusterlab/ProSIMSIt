@@ -186,7 +186,6 @@ def main(argv):
 
     # TODO:
     # Filechecks to remove unnecessary re-writes
-    # Plotting of Oktoberfest 2
 
 
 if __name__ == '__main__':
