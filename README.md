@@ -25,17 +25,9 @@ cd ProSIMSIt
 poetry install
 ```
 
-Alternatively, it can be installed via the provided environment.yml file:
-
-```bash
-conda env create -f environment.yml
-conda activate prosimsit
-```
-
-
 ### Running ProSIMSIt
 ProSIMSIt can be executed via the command line in the generated environment:
 
 ```bash
-python -m prosimsit -c /path/to/config.toml
+poetry python -m prosimsit -c /path/to/config.toml
 ```
