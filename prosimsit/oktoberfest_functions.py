@@ -19,31 +19,27 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, dir_msms, 
     conf.inputs['spectra_type'] = 'mzml'
 
     def copy_files_with_pattern(source_dir, dest_dir, pattern):
-        # Create destination directory if it doesn't exist
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
 
-        # Create a pattern to search for files
         search_pattern = os.path.join(source_dir, pattern)
 
-        # Find files that match the pattern
         files = glob.glob(search_pattern)
 
-        # Copy each file to the destination directory
         for file_path in files:
             shutil.copy(file_path, dest_dir)
             print(f"Copied {file_path} to {dest_dir}")
 
     source_directory = original_output_dir + '/results/'
     destination_directory = conf.output / 'results/'
-    file_pattern = '*.txt'  # Pattern for all .txt files
+    file_pattern = '*.txt'
 
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
 
     # copy progress files as well to indicate that CE calib is already done
     source_directory = original_output_dir + '/proc/'
     destination_directory = conf.output / 'proc/'
-    file_pattern = 'ce_calib*'  # Pattern for all .txt files
+    file_pattern = 'ce_calib*'
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
     return conf
 

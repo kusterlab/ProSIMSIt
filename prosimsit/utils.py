@@ -81,7 +81,7 @@ def prosit_to_simsi(path_to_msms, path_to_prosit, path_out, raw_file_hyphens=0):
     logger.info(f'Done preparing; saved SIMSI-ready file to {path_out}')
 
 
-def prepare_for_second_prosit_run(simsi_output):
+def prepare_input_for_second_oktoberfest(simsi_output):
     msms_df = pd.read_csv(simsi_output / 'summaries/p10/p10_msms.txt', sep='\t')
 
     msms_df = msms_df[msms_df['identification'] == 't']
@@ -94,7 +94,7 @@ def prepare_for_second_prosit_run(simsi_output):
     msms_df['Scan event number'] = msms_df['Scan number']
     msms_df.loc[msms_df['Score'].isna(), ['Score']] = 1
     # TODO: Fix FutureWarning
-    msms_df['Mass'].fillna((msms_df['m/z'] - 1.0078 + 0.0005) * msms_df['Charge'], inplace=True)
+    msms_df['Mass'] = msms_df['Mass'].fillna((msms_df['m/z'] - 1.0078 + 0.0005) * msms_df['Charge'])
 
     msms_for_prosit = simsi_output / 'summaries/p10/msms.txt'
     msms_df.to_csv(msms_for_prosit, sep='\t', index=False)
