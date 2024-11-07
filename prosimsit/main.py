@@ -104,12 +104,9 @@ def main(argv):
     logger.info(f'Finished SIMSI-Transfer!')
 
     logger.info(f'Starting second Oktoberfest run')
-    msms_for_prosit_2 = prepare_for_second_prosit_run(simsi_output)
+    msms_for_prosit_2 = prepare_input_for_second_oktoberfest(simsi_output)
 
-    simsi_output = output_dir / 'simsi_output'
-    dir_msms = msms_for_prosit_2
-
-    conf = prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, dir_msms, output_dir)
+    conf = prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_for_prosit_2, output_dir)
     spectra_files = preprocess_spectra_files(conf)
     annotate_library(spectra_files, conf)
     generate_pred_files(conf)
