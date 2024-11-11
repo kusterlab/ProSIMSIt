@@ -28,19 +28,13 @@ cd ProSIMSIt
 poetry install
 ```
 
-Alternatively, it can be installed via the provided environment.yml file:
-
-```bash
-conda env create -f environment.yml
-conda activate prosimsit
-```
-
 ### Setting up the configuration file
 
 To properly set all parameters for ProSIMSIt, a config.toml file is required. An example file is provided in the
 repository, which can be used as a template.
 
-To get a detailed description of all parameters, please refer to the [Wiki](https://github.com/kusterlab/ProSIMSIt/wiki/config.toml-parameters). 
+To get a detailed description of all parameters, please refer to
+the [Wiki](https://github.com/kusterlab/ProSIMSIt/wiki/config.toml-parameters).
 
 ### Running ProSIMSIt
 
