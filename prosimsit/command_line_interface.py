@@ -15,7 +15,7 @@ class ArgumentParserWithLogger(argparse.ArgumentParser):
 
 
 def parse_args(argv):
-    desc = f'SIMSI-Transfer version {__version__}\n{__copyright__}'
+    desc = f'ProSIMSIt version {__version__}\n{__copyright__}'
     apars = ArgumentParserWithLogger(
         description=desc, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -29,16 +29,11 @@ def parse_args(argv):
             "Path to config file in json format."
         ),
     )
-
     args = apars.parse_args()
     return args
 
-def read_config(argv):
-    """
-    Read config file.
-    :param argv: path to config file as a string, coming from argparse
-    """
 
+def read_config(argv):
     config_path = parse_args(argv).config_path
 
     logger.info(f"Reading configuration from {config_path}")
@@ -47,6 +42,7 @@ def read_config(argv):
     with open(config_path, mode='rb') as f:
         data = tomli.load(f)
     return data
+
 
 if __name__ == '__main__':
     raise NotImplementedError('Do not run this script.')
