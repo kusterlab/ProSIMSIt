@@ -52,7 +52,7 @@ def main(argv):
     logger.info(f'Retrieving .raw files')
     msms = read_msms_singlecol(maxquant_dir, 'Raw file')
 
-    mzml_dir = convert_to_mzml(raw_type, threads, raw_dir, msms, output_dir)
+    mzml_dir = convert_and_get_path(raw_type, threads, raw_dir, msms, output_dir)
 
     logger.info(f'Building config.json for first Oktoberfest run')
     oktoberfest_config_path = output_dir / 'config_oktoberfest.json'
