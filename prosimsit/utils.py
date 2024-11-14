@@ -157,8 +157,7 @@ def translate_modified_sequences_in_psmid(inpseries):
 
 
 def prepare_for_building_evidence(path_to_percolator_result, path_to_percolator_decoy, path_to_simsi_msms,
-                                  path_to_mq_msms100perc,
-                                  path_to_mq_summary, path_to_output, number_of_hyphen=0):
+                                  path_to_mq_msms100perc, path_to_mq_summary, path_to_output, number_of_hyphen=0):
     """
     Prepare a file in the shape of a simsi summary file, that includes all target and decoy PSMs generated during the workflow
     :param path_to_percolator_result: Path to the rescore.psms from the second Oktoberfest run

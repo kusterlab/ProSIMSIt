@@ -9,9 +9,12 @@ from simsi_transfer import evidence
 
 logger = logging.getLogger(__package__ + "." + __file__)
 
-def prepare_simsi_files(output_folder, maxquant_folder):
+def prepare_simsi_files(maxquant_folder, output_folder):
     """
-    This function prepares the files for the SIMSI-Transfer workflow.
+    Prepare the SIMSI input files by copying the necessary files from the MaxQuant output folder
+    :param maxquant_folder: Directory containing MaxQuant output files
+    :param output_folder: Directory where the SIMSI input files will be stored
+    :return: None
     """
     if (output_folder / 'simsi_input' / 'msmsScans.txt').is_file():
         logger.info('msmsScans.txt already exists, reusing it')
@@ -28,12 +31,19 @@ def prepare_simsi_files(output_folder, maxquant_folder):
         shutil.copy(maxquant_folder / 'evidence.txt', output_folder / 'simsi_input' / 'evidence.txt')
 
 
-def build_evidence(path_to_simsi_msms, mq_txt_folder, output_folder):
+def build_evidence(path_to_merged_msms, mq_txt_folder, output_folder):
+    """
+    Build the evidence.txt file from the second Oktoberfest results
+    :param path_to_merged_msms: Path to the merged msms.txt file containing the results from the second Oktoberfest run
+    :param mq_txt_folder: Path to the MaxQuant output folder
+    :param output_folder: Path to the output folder where the evidence.txt file will be stored
+    :return: None
+    """
     if (output_folder / 'evidence.txt').is_file():
         logger.info('evidence.txt already exists, reusing it')
         return
     mq_txt_folders = [mq_txt_folder]
-    msms_simsi = pd.read_csv(path_to_simsi_msms, sep='\t')
+    msms_simsi = pd.read_csv(path_to_merged_msms, sep='\t')
     logger.info(f'successfully read msms_simsi')
 
     evidence_mq = mq.read_evidence_txt(mq_txt_folder)
