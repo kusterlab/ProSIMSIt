@@ -8,7 +8,7 @@ from oktoberfest import runner
 from simsi_transfer import main as simsi
 
 from prosimsit.oktoberfest_functions import prepare_second_oktoberfest_run, preprocess_spectra_files, annotate_library, \
-    generate_pred_files, calculate_featuers
+    generate_pred_files, calculate_featuers, generate_oktoberfest_config
 from prosimsit.picked_fdr_functions import run_picked_protein_group_fdr
 from . import __version__, __copyright__
 from .utils import *
@@ -149,10 +149,6 @@ def main(argv):
 
         subprocess.run(cmd, shell=True, check=True)
     logger.info(f'Finished Percolator run')
-
-    # logger.info(f'Plotting summary plots...')
-    # # plotting
-    # logger.info(f'Finished plotting summary plots.')
 
     logger.info(f'Assembling evidence file for Picked Protein Group FDR')
     picked_dir = output_dir / 'ProSIMSIt/PickedProteinGroupFDR'

@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 import shutil
 from pathlib import Path
@@ -7,13 +8,55 @@ from oktoberfest import runner
 from oktoberfest.data import Spectra
 from oktoberfest.utils import Config, JobPool
 
+from prosimsit.constants import PROSIT_CONFIG
 
-def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, dir_msms, output_dir):
+
+def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
+    """
+    Generate a config.json file to be utilized for both Oktoberfest runs
+    :param config: Dictionary of all config parameters generated from config.toml
+    :param mzml_folder: Directory containing mzML files
+    :param config_path: Path to config.json output file
+    :return: None
+    """
+    oktoberfest_config = PROSIT_CONFIG.copy()
+    oktoberfest_config['inputs']['spectra'] = str(mzml_folder)
+    oktoberfest_config['inputs']['search_results'] = config['inputs']['maxquant_results']
+    oktoberfest_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')
+    oktoberfest_config['models'] = {'intensity': config['prosit']['intensity_model'], 'irt': config['prosit']['irt_model']}
+    oktoberfest_config['prediction_server'] = config['prosit']['prediction_server']
+    oktoberfest_config['numThreads'] = config['general']['threads']
+    oktoberfest_config['thermoExe'] = None
+    if config['prosit']['ssl']:
+        oktoberfest_config['ssl'] = True
+    if config['prosit']['ms_analyzer'] == 'ot':
+        oktoberfest_config['massTolerance'] = 20
+        oktoberfest_config['unitMassTolerance'] = 'ppm'
+    elif config['prosit']['ms_analyzer'] == 'it':
+        oktoberfest_config['massTolerance'] = 0.35
+        oktoberfest_config['unitMassTolerance'] = 'Da'
+    else:
+        raise ValueError(
+            f"Unknown mass analyzer: {config['prosit']['ms_analyzer']}. Use 'it' for ion trap or 'ot' for orbitrap.")
+
+    with open(config_path, 'w') as outfile:
+        json.dump(oktoberfest_config, outfile, indent=4, )
+
+
+def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, output_dir):
+    """
+    This function prepares the second Oktoberfest run by copying the results from the first run to the second run.
+    :param mzml_dir: Folder containing mzML files
+    :param oktoberfest_config_path: Path to the config.json file generated from generate_oktoberfest_config()
+    :param msms_dir: Folder containing MaxQuant msms.txt file
+    :param output_dir: Path to the output directory
+    :return: Oktoberfest Config object containing all oktoberfest-related configurations
+    """
     conf = Config()
     conf.read(oktoberfest_config_path)
     conf.check()
     original_output_dir = conf.data['output']
-    conf.inputs['search_results'] = dir_msms
+    conf.inputs['search_results'] = msms_dir
     conf.data['output'] = output_dir / 'oktoberfest_2_out'
     conf.inputs['spectra'] = mzml_dir
     conf.inputs['spectra_type'] = 'mzml'
@@ -45,12 +88,23 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, dir_msms, 
 
 
 def preprocess_spectra_files(conf):
+    """
+    Wrapper to apply oktoberfest preprocessing steps to spectra files.
+    :param conf: Config object for Oktoberfest generated from prepare_second_oktoberfest_run()
+    :return: List of preprocessed spectra files
+    """
     spectra_files = [Path(f) for f in glob.iglob(str(conf.inputs['spectra'] / '*'))]
     spectra_files = runner._preprocess(spectra_files, conf)
     return spectra_files
 
 
 def annotate_library(spectra_files, conf):
+    """
+    Wrapper to apply oktoberfest library annotation steps.
+    :param spectra_files: List of preprocessed spectra files
+    :param conf: Config object for Oktoberfest generated from prepare_second_oktoberfest_run()
+    :return: None
+    """
     if conf.num_threads > 1:
         processing_pool = JobPool(processes=conf.num_threads)
         for spectra_file in spectra_files:
@@ -62,6 +116,11 @@ def annotate_library(spectra_files, conf):
 
 
 def generate_pred_files(conf):
+    """
+    Generate predictions for all hdf5 files prepared for Prosit.
+    :param conf: Config object for Oktoberfest generated from prepare_second_oktoberfest_run()
+    :return: None
+    """
     spectra_files_str = [f for f in glob.iglob(str(conf.output / 'data' / '*'))]
     for f in spectra_files_str:
         library = Spectra.from_hdf5(f)
@@ -73,6 +132,12 @@ def generate_pred_files(conf):
 
 
 def calculate_featuers(spectra_files, conf):
+    """
+    Function to calculate Percolator features from Prosit predictions.
+    :param spectra_files: List of preprocessed spectra files
+    :param conf: Config object for Oktoberfest generated from prepare_second_oktoberfest_run()
+    :return: None
+    """
     if conf.num_threads > 1:
         processing_pool = JobPool(processes=conf.num_threads)
         for spectra_file in spectra_files:

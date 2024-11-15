@@ -1,5 +1,4 @@
 import logging
-import json
 import glob
 from pathlib import Path
 from typing import List, Optional
@@ -8,8 +7,6 @@ import pandas as pd
 import numpy as np
 
 from simsi_transfer.thermo_raw import convert_raw_mzml_batch
-
-from .constants import PROSIT_CONFIG
 
 # hacky way to get the package logger instead of just __main__ when running as a module
 logger = logging.getLogger(__package__ + "." + __file__)
@@ -30,38 +27,6 @@ def convert_raw_files(
     """
     convert_raw_mzml_batch(raw_files=raw_file_paths, output_folder=output_folder, num_threads=num_threads,
                            ms_level=ms_level)
-
-
-def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
-    """
-    Generate a config.json file for Oktoberfest
-    :param config: Dictionary of all config parameters generated from config.toml
-    :param mzml_folder: Directory containing mzML files
-    :param config_path: Path to config.json output file
-    :return: None
-    """
-    prosit_config = PROSIT_CONFIG.copy()
-    prosit_config['inputs']['spectra'] = str(mzml_folder)
-    prosit_config['inputs']['search_results'] = config['inputs']['maxquant_results']
-    prosit_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')
-    prosit_config['models'] = {'intensity': config['prosit']['intensity_model'], 'irt': config['prosit']['irt_model']}
-    prosit_config['prediction_server'] = config['prosit']['prediction_server']
-    prosit_config['numThreads'] = config['general']['threads']
-    prosit_config['thermoExe'] = None
-    if config['prosit']['ssl']:
-        prosit_config['ssl'] = True
-    if config['prosit']['ms_analyzer'] == 'ot':
-        prosit_config['massTolerance'] = 20
-        prosit_config['unitMassTolerance'] = 'ppm'
-    elif config['prosit']['ms_analyzer'] == 'it':
-        prosit_config['massTolerance'] = 0.35
-        prosit_config['unitMassTolerance'] = 'Da'
-    else:
-        raise ValueError(
-            f"Unknown mass analyzer: {config['prosit']['ms_analyzer']}. Use 'it' for ion trap or 'ot' for orbitrap.")
-
-    with open(config_path, 'w') as outfile:
-        json.dump(prosit_config, outfile, indent=4, )
 
 
 def prosit_to_simsi(path_to_msms, path_to_percolator, path_out, raw_file_hyphens=0):
