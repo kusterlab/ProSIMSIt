@@ -11,8 +11,8 @@ spectra = "<Path to raw or mzML file folder>"
 spectra_type = "<raw/mzml>"
 
 [prosit]
-intensity_model = "<Prosit_2020_intensity_TMT/>"
-irt_model = "<Prosit_2020_irt_TMT>"
+intensity_model = "<Prosit_2020_intensity_TMT or Prosit_2024_intensity_PTMs_gl>"
+irt_model = "<Prosit_2020_irt_TMT or Prosit_2024_irt_PTMs_gl>"
 prediction_server = "koina.wilhelmlab.org:443"
 ssl = true
 ms_analyzer = "<ot/it>"
