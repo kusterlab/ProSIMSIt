@@ -20,7 +20,7 @@ the [Poetry website](https://python-poetry.org/docs/).
 
 ### Installation
 
-To install ProSIMSIt, clone the repository and install the package:
+To install ProSIMSIt, clone the repository and make a poetry environment:
 
 ```bash
 git clone
@@ -33,7 +33,7 @@ poetry install
 To properly set all parameters for ProSIMSIt, a config.toml file is required. An example file is provided in the
 repository, which can be used as a template.
 
-To get a detailed description of all parameters, please refer to
+For a detailed description of all config parameters, please refer to
 the [Wiki](https://github.com/kusterlab/ProSIMSIt/wiki/config.toml-parameters).
 
 ### Running ProSIMSIt
