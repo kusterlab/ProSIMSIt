@@ -2,26 +2,29 @@ import os
 import sys
 import time
 import subprocess
+import logging
+
+from pathlib import Path
 from datetime import datetime
 
-from oktoberfest import runner
-from simsi_transfer import main as simsi
+from oktoberfest import runner as oktoberfest_runner
+from simsi_transfer import main as simsi_main
 
-from prosimsit.oktoberfest_functions import prepare_second_oktoberfest_run, preprocess_spectra_files, annotate_library, \
-    generate_pred_files, calculate_featuers, generate_oktoberfest_config
-from prosimsit.picked_fdr_functions import run_picked_protein_group_fdr
-from prosimsit.raw import convert_and_get_path
+import prosimsit.oktoberfest_functions as oktoberfest
+import prosimsit.simsi_functions as simsi
+import prosimsit.picked_fdr_functions as picked
+import prosimsit.raw as raw
+import prosimsit.utils as utils
+import prosimsit.command_line_interface as cli
+import prosimsit.io as io
+
 from . import __version__, __copyright__
-from .utils import *
-from .command_line_interface import read_config
-from .simsi_functions import prepare_simsi_files, build_evidence
-from .io import read_msms_singlecol
-
 
 logger = logging.getLogger(__name__)
 
+
 def main(argv):
-    config = read_config(argv)
+    config = cli.read_config(argv)
     print(config)
 
     if config['general']['debug_mode']:
@@ -52,21 +55,20 @@ def main(argv):
     logger.info(f'Starting ProSIMSIt')
     logger.info('')
 
-
     logger.info(f'Retrieving .raw files')
-    msms = read_msms_singlecol(maxquant_dir, 'Raw file')
+    msms = io.read_msms_singlecol(maxquant_dir, 'Raw file')
 
-    mzml_dir = convert_and_get_path(raw_type, threads, raw_dir, msms, output_dir)
+    mzml_dir = raw.convert_and_get_path(raw_type, threads, raw_dir, msms, output_dir)
 
     logger.info(f'Building config.json for first Oktoberfest run')
     oktoberfest_config_path = output_dir / 'config_oktoberfest.json'
-    generate_oktoberfest_config(config, mzml_dir, oktoberfest_config_path)
+    oktoberfest.generate_oktoberfest_config(config, mzml_dir, oktoberfest_config_path)
 
     logger.info(f'Executing first Oktoberfest run')
     if (output_dir / 'oktoberfest_1_out/results/percolator/rescore.percolator.psms.txt').is_file():
         logger.info(f'Found previous Oktoberfest run; skipping...')
     else:
-        runner.run_job(oktoberfest_config_path)
+        oktoberfest_runner.run_job(oktoberfest_config_path)
 
     logger.info(f'Preparing input file for SIMSI-Transfer')
     raw_file_hyphen = os.listdir(mzml_dir)[0].count('-')
@@ -74,13 +76,13 @@ def main(argv):
 
     ok1_percolator = output_dir / 'oktoberfest_1_out' / 'results' / 'percolator'
 
-    prosit_to_simsi(
+    utils.prosit_to_simsi(
         maxquant_dir / 'msms.txt',
         ok1_percolator,
         output_dir / 'simsi_input' / 'msms.txt',
         raw_file_hyphens=raw_file_hyphen)
 
-    prepare_simsi_files(output_dir, maxquant_dir)
+    simsi.prepare_simsi_files(output_dir, maxquant_dir)
 
     logger.info(f'Starting SIMSI-Transfer')
 
@@ -104,17 +106,17 @@ def main(argv):
     if (simsi_output / 'summaries/p10/p10_msms.txt').is_file():
         logger.info(f'Found previous SIMSI-Transfer run; skipping...')
     else:
-        simsi.main(simsi_args)
+        simsi_main.main(simsi_args)
     logger.info(f'Finished SIMSI-Transfer!')
 
     logger.info(f'Starting second Oktoberfest run')
-    msms_for_prosit_2 = prepare_input_for_second_oktoberfest(simsi_output)
+    msms_for_prosit_2 = utils.prepare_input_for_second_oktoberfest(simsi_output)
 
-    conf = prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_for_prosit_2, output_dir)
-    spectra_files = preprocess_spectra_files(conf)
-    annotate_library(spectra_files, conf)
-    generate_pred_files(conf)
-    calculate_featuers(spectra_files, conf)
+    conf = oktoberfest.prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_for_prosit_2, output_dir)
+    spectra_files = oktoberfest.preprocess_spectra_files(conf)
+    oktoberfest.annotate_library(spectra_files, conf)
+    oktoberfest.generate_pred_files(conf)
+    oktoberfest.calculate_featuers(spectra_files, conf)
     logger.info(f'Finished second Oktoberfest run')
 
     #####
@@ -122,7 +124,7 @@ def main(argv):
     logger.info(f'Preparing for percolator run')
     percolator_dir = output_dir / 'ProSIMSIt/percolator'
     os.makedirs(percolator_dir, exist_ok=True)
-    merge_rescore_files(ok1_dir=ok1_percolator, ok2_dir=conf.output / 'results/percolator', output_dir=percolator_dir)
+    utils.merge_rescore_files(ok1_dir=ok1_percolator, ok2_dir=conf.output / 'results/percolator', output_dir=percolator_dir)
 
     #####
 
@@ -157,7 +159,7 @@ def main(argv):
     logger.info(f'Assembling evidence file for Picked Protein Group FDR')
     picked_dir = output_dir / 'ProSIMSIt/PickedProteinGroupFDR'
     os.makedirs(picked_dir, exist_ok=True)
-    prepare_for_building_evidence(
+    utils.prepare_for_building_evidence(
         f'{percolator_dir}/rescore_all.percolator.psms.txt',
         f'{percolator_dir}/rescore_all.percolator.decoy.psms.txt',
         f'{simsi_output}/summaries/p10/p10_msms.txt',
@@ -166,11 +168,12 @@ def main(argv):
         f'{picked_dir}/merged_msms.txt',
         number_of_hyphen=raw_file_hyphen)
 
-    build_evidence(f'{picked_dir}/merged_msms.txt', maxquant_dir, picked_dir)
+    simsi.build_evidence(f'{picked_dir}/merged_msms.txt', maxquant_dir, picked_dir)
     logger.info(f'Evidence assembly finished!')
 
     logger.info(f'Applying Picked Protein Group FDR')
-    run_picked_protein_group_fdr(percolator_dir, picked_dir, config['picked_protein_group_fdr']['fasta'], config['picked_protein_group_fdr']['enzyme'])
+    picked.run_picked_protein_group_fdr(percolator_dir, picked_dir, config['picked_protein_group_fdr']['fasta'],
+                                 config['picked_protein_group_fdr']['enzyme'])
     # picked
     logger.info(f'Picked Protein Group FDR application finished!')
 
