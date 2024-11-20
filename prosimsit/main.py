@@ -10,18 +10,22 @@ from simsi_transfer import main as simsi
 from prosimsit.oktoberfest_functions import prepare_second_oktoberfest_run, preprocess_spectra_files, annotate_library, \
     generate_pred_files, calculate_featuers, generate_oktoberfest_config
 from prosimsit.picked_fdr_functions import run_picked_protein_group_fdr
+from prosimsit.raw import convert_and_get_path
 from . import __version__, __copyright__
 from .utils import *
 from .command_line_interface import read_config
 from .simsi_functions import prepare_simsi_files, build_evidence
 from .io import read_msms_singlecol
 
-#logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 def main(argv):
     config = read_config(argv)
     print(config)
+
+    if config['general']['debug_mode']:
+        logging.basicConfig(level=logging.DEBUG)
 
     output_dir = Path(config['general']['output'])
     threads = config['general']['threads']

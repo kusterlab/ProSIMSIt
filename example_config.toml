@@ -4,6 +4,7 @@
 output = "<Path to output>"
 threads = "<Number of threads>"
 tmt_ms_level = "<ms2/ms3>"
+debug_mode = false
 
 [inputs]
 maxquant_results = "<Path to MaxQuant combined/txt/>"
