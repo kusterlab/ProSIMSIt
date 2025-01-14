@@ -31,7 +31,7 @@ def main(argv):
         logging.basicConfig(level=logging.DEBUG)
 
     output_dir = Path(config['general']['output'])
-    threads = config['general']['threads']
+    threads = int(config['general']['threads'])
 
     maxquant_dir = Path(config['inputs']['maxquant_results'])
     raw_dir = Path(config['inputs']['spectra'])
