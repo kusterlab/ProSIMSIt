@@ -34,7 +34,7 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
         oktoberfest_config['unitMassTolerance'] = 'ppm'
     elif config['prosit']['ms_analyzer'] == 'it':
         oktoberfest_config['massTolerance'] = 0.35
-        oktoberfest_config['unitMassTolerance'] = 'Da'
+        oktoberfest_config['unitMassTolerance'] = 'da'
     else:
         raise ValueError(
             f"Unknown mass analyzer: {config['prosit']['ms_analyzer']}. Use 'it' for ion trap or 'ot' for orbitrap.")
