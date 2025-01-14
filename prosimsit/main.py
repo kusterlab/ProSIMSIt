@@ -82,7 +82,7 @@ def main(argv):
         output_dir / 'simsi_input' / 'msms.txt',
         raw_file_hyphens=raw_file_hyphen)
 
-    simsi.prepare_simsi_files(output_dir, maxquant_dir)
+    simsi.prepare_simsi_files(maxquant_dir, output_dir)
 
     logger.info(f'Starting SIMSI-Transfer')
 
