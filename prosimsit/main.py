@@ -103,6 +103,11 @@ def main(argv):
         '--ambiguity_decision', 'keep_all',
         '--skip_evidence', '--skip_msmsscans'
     ]
+
+    if config['simsi']['tmt_requantify']:
+        simsi_args.append('--tmt_requantify')
+        simsi_args.extend(['--tmt_reporter_correction_file', config['simsi']['tmt_correction_factors']])
+
     if (simsi_output / 'summaries/p10/p10_msms.txt').is_file():
         logger.info(f'Found previous SIMSI-Transfer run; skipping...')
     else:
