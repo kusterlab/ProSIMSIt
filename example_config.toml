@@ -23,6 +23,9 @@ tolerance_unit = "<da/ppm>"
 [simsi]
 stringency = "10"
 max_pep = "5"
+tmt_requantify = "<false or true>"
+tmt_correction_factors = "<Path to correction factors file if tmt_requantify is true>"
+
 
 [picked_protein_group_fdr]
 fasta = "<Path to .fasta file used for database search>"
