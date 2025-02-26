@@ -16,7 +16,9 @@ intensity_model = "<Prosit_2020_intensity_TMT or Prosit_2024_intensity_PTMs_gl>"
 irt_model = "<Prosit_2020_irt_TMT or Prosit_2024_irt_PTMs_gl>"
 prediction_server = "koina.wilhelmlab.org:443"
 ssl = true
-ms_analyzer = "<ot/it>"
+ms_analyzer = "<ot/it/manual (add tolerance below)>"
+mass_tolerance = "<mass tolerance>"
+tolerance_unit = "<da/ppm>"
 
 [simsi]
 stringency = "10"

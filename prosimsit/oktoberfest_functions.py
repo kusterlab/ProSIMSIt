@@ -23,7 +23,8 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     oktoberfest_config['inputs']['spectra'] = str(mzml_folder)
     oktoberfest_config['inputs']['search_results'] = config['inputs']['maxquant_results']
     oktoberfest_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')
-    oktoberfest_config['models'] = {'intensity': config['prosit']['intensity_model'], 'irt': config['prosit']['irt_model']}
+    oktoberfest_config['models'] = {'intensity': config['prosit']['intensity_model'],
+                                    'irt': config['prosit']['irt_model']}
     oktoberfest_config['prediction_server'] = config['prosit']['prediction_server']
     oktoberfest_config['numThreads'] = config['general']['threads']
     oktoberfest_config['thermoExe'] = None
@@ -35,6 +36,15 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     elif config['prosit']['ms_analyzer'] == 'it':
         oktoberfest_config['massTolerance'] = 0.35
         oktoberfest_config['unitMassTolerance'] = 'da'
+    elif config['prosit']['ms_analyzer'] == 'manual':
+        oktoberfest_config['massTolerance'] = config['prosit']['mass_tolerance']
+        if config['prosit']['tolerance_unit'] not in ['da', 'ppm']:
+            raise ValueError(
+                f"Unknown tolerance unit: {config['prosit']['tolerance_unit']}. "
+                f"Use 'da' for dalton when rescoring ITMS data,"
+                f"or 'ppm' for parts per million when rescoring FTMS data."
+            )
+        oktoberfest_config['unitMassTolerance'] = config['prosit']['tolerance_unit']
     else:
         raise ValueError(
             f"Unknown mass analyzer: {config['prosit']['ms_analyzer']}. Use 'it' for ion trap or 'ot' for orbitrap.")
