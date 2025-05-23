@@ -20,6 +20,7 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     :return: None
     """
     oktoberfest_config = PROSIT_CONFIG.copy()
+    oktoberfest_config['tag'] = config['general']['tmt_type']
     oktoberfest_config['inputs']['spectra'] = str(mzml_folder)
     oktoberfest_config['inputs']['search_results'] = config['inputs']['maxquant_results']
     oktoberfest_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')

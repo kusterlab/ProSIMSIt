@@ -1,6 +1,5 @@
 PROSIT_CONFIG = {
     "type": "Rescoring",
-    "tag": "tmt",
     "inputs": {
         "search_results_type": "Maxquant",
         "spectra_type": "mzml",
