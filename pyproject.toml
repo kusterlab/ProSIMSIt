@@ -10,11 +10,11 @@ repository = "https://github.com/kusterlab/ProSIMSIt"
 keywords = ["mass spectrometry", "missing values", "clustering", "proteomics", "quantification"]
 
 [tool.poetry.dependencies]
-python = ">=3.9.0,<3.11.0"
-simsi-transfer = { git = "https://github.com/kusterlab/SIMSI-Transfer.git", branch = "keep_all_modseq" }
-picked-group-fdr = "0.7.2"
+python = ">=3.10,<3.11"
+simsi-transfer = { git = "https://github.com/kusterlab/SIMSI-Transfer.git", branch = "master" }
+picked-group-fdr = "0.9.0"
 oktoberfest = { git = "https://github.com/wilhelm-lab/oktoberfest.git", branch = "features/ptm_pipeline" }
-pyarrow = "16.0.0"
+pyarrow = "19.0.1"
 tomli = "^2.0.2"
 
 [tool.poetry.dev-dependencies]
