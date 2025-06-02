@@ -117,7 +117,7 @@ def main(argv):
     logger.info(f'Starting second Oktoberfest run')
     msms_for_prosit_2 = utils.prepare_input_for_second_oktoberfest(simsi_output)
 
-    conf = oktoberfest.prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_for_prosit_2)
+    conf = oktoberfest.prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_for_prosit_2.relative_to(output_dir))
     spectra_files = oktoberfest.preprocess_spectra_files(conf)
     oktoberfest.annotate_library(spectra_files, conf)
     oktoberfest.generate_pred_files(conf)
