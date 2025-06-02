@@ -27,7 +27,7 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     oktoberfest_config['models'] = {'intensity': config['prosit']['intensity_model'],
                                     'irt': config['prosit']['irt_model']}
     oktoberfest_config['prediction_server'] = config['prosit']['prediction_server']
-    oktoberfest_config['numThreads'] = config['general']['threads']
+    oktoberfest_config['numThreads'] = int(config['general']['threads'])
     oktoberfest_config['thermoExe'] = None
     if config['prosit']['ssl']:
         oktoberfest_config['ssl'] = True
@@ -54,7 +54,7 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
         json.dump(oktoberfest_config, outfile, indent=4, )
 
 
-def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, output_dir):
+def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir):
     """
     This function prepares the second Oktoberfest run by copying the results from the first run to the second run.
     :param mzml_dir: Folder containing mzML files
@@ -68,7 +68,7 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, 
     conf.check()
     original_output_dir = conf.data['output']
     conf.inputs['search_results'] = msms_dir
-    conf.data['output'] = output_dir / 'oktoberfest_2_out'
+    conf.data['output'] = 'oktoberfest_2_out'
     conf.inputs['spectra'] = mzml_dir
     conf.inputs['spectra_type'] = 'mzml'
 
