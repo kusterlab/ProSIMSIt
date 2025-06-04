@@ -23,11 +23,11 @@ def generate_oktoberfest_config(config, mzml_folder: Path, config_path: Path):
     oktoberfest_config['tag'] = config['general']['tmt_type']
     oktoberfest_config['inputs']['spectra'] = str(mzml_folder)
     oktoberfest_config['inputs']['search_results'] = config['inputs']['maxquant_results']
-    oktoberfest_config['output'] = str(Path(config['general']['output']) / 'oktoberfest_1_out')
+    oktoberfest_config['output'] = 'oktoberfest_1_out'
     oktoberfest_config['models'] = {'intensity': config['prosit']['intensity_model'],
                                     'irt': config['prosit']['irt_model']}
     oktoberfest_config['prediction_server'] = config['prosit']['prediction_server']
-    oktoberfest_config['numThreads'] = config['general']['threads']
+    oktoberfest_config['numThreads'] = int(config['general']['threads'])
     oktoberfest_config['thermoExe'] = None
     if config['prosit']['ssl']:
         oktoberfest_config['ssl'] = True
@@ -66,9 +66,9 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, 
     conf = Config()
     conf.read(oktoberfest_config_path)
     conf.check()
-    original_output_dir = conf.data['output']
-    conf.inputs['search_results'] = msms_dir
-    conf.data['output'] = output_dir / 'oktoberfest_2_out'
+    original_output_dir = conf.output
+    conf.inputs['search_results'] = msms_dir.relative_to(output_dir)
+    conf.data['output'] = 'oktoberfest_2_out'
     conf.inputs['spectra'] = mzml_dir
     conf.inputs['spectra_type'] = 'mzml'
 
@@ -79,19 +79,18 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, 
         search_pattern = os.path.join(source_dir, pattern)
 
         files = glob.glob(search_pattern)
-
         for file_path in files:
             shutil.copy(file_path, dest_dir)
             print(f"Copied {file_path} to {dest_dir}")
 
-    source_directory = original_output_dir + '/results/'
+    source_directory = original_output_dir  / 'results/'
     destination_directory = conf.output / 'results/'
     file_pattern = '*.txt'
 
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
 
     # copy progress files as well to indicate that CE calib is already done
-    source_directory = original_output_dir + '/proc/'
+    source_directory = original_output_dir / 'proc/'
     destination_directory = conf.output / 'proc/'
     file_pattern = 'ce_calib*'
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
