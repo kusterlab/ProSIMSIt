@@ -39,17 +39,11 @@ def run_picked_protein_group_fdr(percolator_dir, picked_dir, fasta, enzyme):
         '--pout_input_type', 'prosit'])
 
 
-    if type(fasta) == list:
-        picked_group_fdr.main([
-            '--mq_evidence', f'{picked_dir}/updated_evidence.txt',
-            '--protein_groups_out', f'{picked_dir}/group_results.txt',
-            '--fasta', *fasta,
-            '--methods', 'picked_protein_group_mq_input',
-            '--enzyme', enzyme])
-    else:
-        picked_group_fdr.main([
-            '--mq_evidence', f'{picked_dir}/updated_evidence.txt',
-            '--protein_groups_out', f'{picked_dir}/group_results.txt',
-            '--fasta', fasta,
-            '--methods', 'picked_protein_group_mq_input',
-            '--enzyme', enzyme])
+    picked_group_fdr.main([
+        '--mq_evidence', f'{picked_dir}/updated_evidence.txt',
+        '--protein_groups_out', f'{picked_dir}/group_results.txt',
+        '--fasta', *(fasta if isinstance(fasta, list) else [fasta]),
+        '--methods', 'picked_protein_group_mq_input',
+        '--enzyme', enzyme,
+        '--do_quant'
+    ])

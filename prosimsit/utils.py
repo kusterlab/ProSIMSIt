@@ -25,11 +25,9 @@ def prosit_to_simsi(path_to_msms, path_to_percolator, path_out, raw_file_hyphens
     prosit_target = pd.read_csv(path_to_percolator / 'rescore.percolator.psms.txt', sep="\t")
     prosit_decoy = pd.read_csv(path_to_percolator / 'rescore.percolator.decoy.psms.txt', sep="\t")
 
-    prosit_all = pd.concat([prosit_target, prosit_decoy])
-    prosit_all["Scan number"] = prosit_all['PSMId'].str.split('-').str[raw_file_hyphens + 1].astype(
-        int)
-    prosit_all["Raw file"] = prosit_all['PSMId'].str.split('-').str[0:raw_file_hyphens + 1]
-    prosit_all["Raw file"] = prosit_all["Raw file"].apply(lambda raw_file: '-'.join(raw_file))
+    prosit_all = pd.concat([prosit_target, prosit_decoy]).reset_index(drop=True)
+    prosit_all["Scan number"] = prosit_all['PSMId'].str.extract(r"^.*-(\d+)-\[").astype(int)
+    prosit_all.rename(columns={'filename': 'Raw file'}, inplace=True)
     prosit_all = prosit_all.loc[prosit_all["q-value"] <= 0.01]
     prosit_all = prosit_all[["Raw file", "Scan number", "posterior_error_prob", "score"]]
 
@@ -90,15 +88,15 @@ def merge_rescore_files(ok1_dir, ok2_dir: Path, output_dir: Path):
 def translate_modified_sequences_in_psmid(inpseries):
     """
     Translate modified sequences from MaxQuant to SIMSI format to be used in PSMId columns
-    :param inpseries: Series containing PSMId's from Oktoberfest
+    :param inpseries: Series containing peptides from Oktoberfest
     :return: Series containing PSMId's with modifications translated into MaxQuant format
     """
-    split = inpseries.str.split('-')
-    return (split.str[0] + '-' + split.str[1] + '-_' + split.str[3]
+    return (inpseries.str.split('-').str[1]
+            .str.replace('.', '', regex=False)
             .str.replace('[UNIMOD:737]', '', regex=False)
             .str.replace('[UNIMOD:35]', '(Oxidation (M))', regex=False)
             .str.replace('[UNIMOD:21]', '(Phospho (STY))', regex=False)
-            .str.replace('[UNIMOD:4]', '', regex=False) + '_')
+            .str.replace('[UNIMOD:4]', '', regex=False))
 
 
 def prepare_for_building_evidence(path_to_percolator_result, path_to_percolator_decoy, path_to_simsi_msms,
@@ -120,19 +118,19 @@ def prepare_for_building_evidence(path_to_percolator_result, path_to_percolator_
 
     all_PEPs = pd.DataFrame()
     deduplicated_PSMs = set()
-    percolator = pd.read_csv(path_to_percolator_result, usecols=['PSMId', 'filename', 'posterior_error_prob'], sep='\t')
-    percolator["Scan number"] = percolator['PSMId'].str.split('-').str[number_of_hyphen + 1].astype(int)
+    percolator = pd.read_csv(path_to_percolator_result, usecols=['PSMId', 'filename', 'posterior_error_prob', 'peptide'], sep='\t')
+    percolator["Scan number"] = percolator['PSMId'].str.extract(r"^.*-(\d+)-\[").astype(int)
     percolator["ID"] = percolator['filename'] + '-' + percolator["Scan number"].astype(str)
-    percolator["PSMId"] = translate_modified_sequences_in_psmid(percolator["PSMId"])
+    percolator["PSMId"] = percolator["ID"] + '-_' + translate_modified_sequences_in_psmid(percolator["peptide"])
     deduplicated_PSMs = deduplicated_PSMs.union(set(percolator['PSMId']))
     all_ids = set(percolator['ID'])
     all_PEPs = pd.concat([all_PEPs, percolator[['ID', 'posterior_error_prob']]])
     del percolator
-    percolator_decoys = pd.read_csv(path_to_percolator_decoy, usecols=['PSMId', 'filename', 'posterior_error_prob'],
+    percolator_decoys = pd.read_csv(path_to_percolator_decoy, usecols=['PSMId', 'filename', 'posterior_error_prob', 'peptide'],
                                     sep='\t')
-    percolator_decoys["Scan number"] = percolator_decoys['PSMId'].str.split('-').str[number_of_hyphen + 1].astype(int)
+    percolator_decoys["Scan number"] = percolator_decoys['PSMId'].str.extract(r"^.*-(\d+)-\[").astype(int)
     percolator_decoys["ID"] = percolator_decoys['filename'] + '-' + percolator_decoys["Scan number"].astype(str)
-    percolator_decoys["PSMId"] = translate_modified_sequences_in_psmid(percolator_decoys["PSMId"])
+    percolator_decoys["PSMId"] = percolator_decoys["ID"] + '-_' + translate_modified_sequences_in_psmid(percolator_decoys["peptide"])
     deduplicated_PSMs = deduplicated_PSMs.union(set(percolator_decoys['PSMId']))
     all_ids_decoys = set(percolator_decoys['ID'])
     all_PEPs = pd.concat([all_PEPs, percolator_decoys[['ID', 'posterior_error_prob']]])
