@@ -85,7 +85,10 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, 
     file_pattern = 'ce_calib*'
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
     with open(oktoberfest_config_path.parent / 'config_oktoberfest_2.json', 'w') as outfile:
-        json.dump(conf, outfile, indent=4, )
+        try:
+            json.dump(conf.__dict__, outfile, indent=4, )
+        except:
+            pass
     return conf
 
 
