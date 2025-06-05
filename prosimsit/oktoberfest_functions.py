@@ -129,7 +129,7 @@ def generate_pred_files(conf):
     spectra_files_str = [Path(f) for f in glob.iglob(str(conf.output / 'data' / '*'))]
     for f in spectra_files_str:
         library = Spectra.from_hdf5(f)
-        result_file = conf.output / 'results' / (f.with_suffix('').name + '_ce.txt')
+        result_file = conf.output / 'results' / (f.with_suffix('').stem + '_ce.txt')
         with open(result_file, 'r') as file:
             content = file.read()
             best_ce = int(content)
