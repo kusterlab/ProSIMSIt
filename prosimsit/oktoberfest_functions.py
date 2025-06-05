@@ -86,7 +86,7 @@ def prepare_second_oktoberfest_run(mzml_dir, oktoberfest_config_path, msms_dir, 
     copy_files_with_pattern(source_directory, destination_directory, file_pattern)
     with open(oktoberfest_config_path.parent / 'config_oktoberfest_2.json', 'w') as outfile:
         try:
-            json.dump(conf.__dict__, outfile, indent=4, )
+            json.dump(conf.data, outfile, indent=4)
         except:
             pass
     return conf
