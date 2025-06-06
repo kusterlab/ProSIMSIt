@@ -131,15 +131,15 @@ def generate_pred_files(conf):
     :param conf: Config object for Oktoberfest generated from prepare_second_oktoberfest_run()
     :return: None
     """
-    spectra_files_str = [Path(f) for f in glob.iglob(str(conf.output / 'data' / '*'))]
+    spectra_files_str = [Path(f) for f in glob.iglob(str(conf.output / 'data' / '*.mzml.hdf5'))]
     for f in spectra_files_str:
         library = Spectra.from_hdf5(f)
-        result_file = conf.output / 'results' / f.with_suffix('').name + '_ce.txt'
+        result_file = conf.output / 'results' / (f.with_suffix('').stem + '_ce.txt')
         with open(result_file, 'r') as file:
             content = file.read()
             best_ce = int(content)
         library.obs['COLLISION_ENERGY'] = best_ce
-        output_file = f.with_name(f.stem + '.pred.hdf5')
+        output_file = f.with_suffix(".pred.hdf5")
         library.write_as_hdf5(output_file)
 
 
