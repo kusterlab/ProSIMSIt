@@ -2,7 +2,9 @@
 
 Combining SIMSI-Transfer and Oktoberfest rescoring for improved multi-batch TMT results.
 
-Hamood, F., Gabriel, W., Pfeiffer, P., Kuster, B., Wilhelm, M., The, M.; Publication pending.
+Hamood, F., Gabriel, W., Pfeiffer, P., Kuster, B., Wilhelm, M., The, M.
+
+https://pubs.acs.org/doi/10.1021/acs.jproteome.4c00967
 
 ## Test dataset
 
