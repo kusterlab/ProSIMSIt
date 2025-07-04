@@ -11,6 +11,7 @@ keywords = ["mass spectrometry", "missing values", "clustering", "proteomics", "
 
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.11.0"
+psite-annotation = "0.6.1"
 simsi-transfer = { git = "https://github.com/kusterlab/SIMSI-Transfer.git", branch = "keep_all_modseq" }
 picked-group-fdr = "0.7.2"
 oktoberfest = { git = "https://github.com/wilhelm-lab/oktoberfest.git", branch = "features/ptm_pipeline" }
