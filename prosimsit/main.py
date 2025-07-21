@@ -13,6 +13,7 @@ from simsi_transfer import main as simsi_main
 import prosimsit.oktoberfest_functions as oktoberfest
 import prosimsit.simsi_functions as simsi
 import prosimsit.picked_fdr_functions as picked
+import prosimsit.table_generation as table_generation
 import prosimsit.raw as raw
 import prosimsit.utils as utils
 import prosimsit.command_line_interface as cli
@@ -170,6 +171,10 @@ def main(argv):
 
     simsi.build_evidence(f'{picked_dir}/merged_msms.txt', maxquant_dir, picked_dir)
     logger.info(f'Evidence assembly finished!')
+
+    if config['general']['build_phosphopeptide_table']:
+        logger.info(f'Applying pyAscore and building table of phosphopeptides')
+        table_generation.generate_phospho_table(output_dir, mzml_dir, config['picked_protein_group_fdr']['fasta'])
 
     logger.info(f'Applying Picked Protein Group FDR')
     picked.run_picked_protein_group_fdr(percolator_dir, picked_dir, config['picked_protein_group_fdr']['fasta'],
