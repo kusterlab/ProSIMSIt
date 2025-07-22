@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import numpy as np
 import psite_annotation as pa
@@ -6,6 +7,9 @@ import re
 from io import StringIO
 import gc
 from pyascore import MassCorrector, SpectraParser, IdentificationParser, PyAscore
+
+
+logger = logging.getLogger(__package__ + "." + __file__)
 
 
 def preprocess_for_pyascore(df):
@@ -139,6 +143,31 @@ def process_ascores(series, function):
     return ';'.join(f"{score:.1f}" for score in new_scores)
 
 
+def perform_pyascore(psms, output_dir, mzml_dir):
+    modifications = {"n": 229.162932,  # N-term TMT
+                     "M": 15.9949,  # Methionine oxidation
+                     "S": 79.966331,  # Serine Phoshorylation
+                     "T": 79.966331,  # Threonine Phosphorylation
+                     "Y": 79.966331,  # Tyrosine Phosphorylation
+                     "C": 57.021464,  # Cysteine Carbamidomethylation
+                     "K": 229.162932}  # Lysine TMT6plex
+    mass_corrector = MassCorrector(modifications, mz_tol=1.5)
+
+    preprocessed_df = preprocess_for_pyascore(psms)
+    results = []
+    counter = 0
+    maxcounter = len(preprocessed_df['Raw file'].unique())
+    logger.info(f'Processing {maxcounter} raw files with pyAscore')
+    for raw_file, group in preprocessed_df.groupby('Raw file'):
+        result = pyascore_scoring_with_stringio(group, mzml_dir, raw_file, counter, maxcounter, mass_corrector)
+        results.append(result)
+        counter += 1
+
+    final_results = pd.concat(results, ignore_index=True)
+    final_results.to_csv(output_dir / 'ascore_table.txt', sep='\t', index=False)
+    return final_results
+
+
 def generate_phospho_table(output_dir, mzml_dir, fasta_path):
     psms = pd.read_csv(output_dir / 'ProSIMSIt/percolator' / 'rescore_all.percolator.psms.txt',
                        sep='\t')
@@ -161,27 +190,11 @@ def generate_phospho_table(output_dir, mzml_dir, fasta_path):
     psms['Charge'] = psms['PSMId'].str.split('-').str[-1].astype('int8')
     psms['Phosphorylations'] = psms['peptide'].str.count(r'\[UNIMOD\:21\]')
 
-    modifications = {"n": 229.162932,  # N-term TMT
-                     "M": 15.9949,  # Methionine oxidation
-                     "S": 79.966331,  # Serine Phoshorylation
-                     "T": 79.966331,  # Threonine Phosphorylation
-                     "Y": 79.966331,  # Tyrosine Phosphorylation
-                     "C": 57.021464,  # Cysteine Carbamidomethylation
-                     "K": 229.162932}  # Lysine TMT6plex
-    mass_corrector = MassCorrector(modifications, mz_tol=1.5)
-
-    preprocessed_df = preprocess_for_pyascore(psms)
-    results = []
-    counter = 0
-    maxcounter = len(preprocessed_df['Raw file'].unique())
-    print(f'Processing {maxcounter} raw files with pyAscore')
-    for raw_file, group in preprocessed_df.groupby('Raw file'):
-        result = pyascore_scoring_with_stringio(group, mzml_dir, raw_file, counter, maxcounter, mass_corrector)
-        results.append(result)
-        counter += 1
-
-    final_results = pd.concat(results, ignore_index=True)
-    final_results.to_csv(output_dir / 'ascore_table.txt', sep='\t', index=False)
+    if (output_dir / 'ascore_table.txt').is_file():
+        logger.info(f'Existing pyAscore results found; reusing {output_dir / "ascore_table.txt"}')
+        final_results = pd.read_csv(output_dir / 'ascore_table.txt', sep='\t')
+    else:
+        final_results = perform_pyascore(psms, output_dir, mzml_dir)
 
     psms = pd.merge(psms, final_results, on=['Raw file', 'scan'], how='left', validate='one_to_one')
 
