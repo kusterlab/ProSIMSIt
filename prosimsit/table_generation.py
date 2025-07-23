@@ -164,7 +164,7 @@ def perform_pyascore(psms, output_dir, mzml_dir):
         counter += 1
 
     final_results = pd.concat(results, ignore_index=True)
-    final_results.to_csv(output_dir / 'ascore_table.txt', sep='\t', index=False)
+    final_results.to_csv(output_dir / 'ProSIMSIt/ascore_table.txt', sep='\t', index=False)
     return final_results
 
 
@@ -174,11 +174,11 @@ def generate_phospho_table(output_dir, mzml_dir, fasta_path):
     psms = pd.concat([psms, pd.read_csv(
         output_dir / 'ProSIMSIt/percolator' / 'rescore_all.percolator.decoy.psms.txt', sep='\t')])
 
-    quan_summary = pd.read_csv(output_dir / 'PickedProteinGroupFDR/merged_msms.txt',
+    quan_summary = pd.read_csv(output_dir / 'ProSIMSIt/PickedProteinGroupFDR/merged_msms.txt',
                                sep='\t', nrows=0)
     usecols = ([col for col in quan_summary.columns if 'Reporter intensity corrected' in col] +
                ['Raw file', 'scanID', 'Experiment', 'Fraction', 'Modified sequence'])
-    quan_summary = pd.read_csv(output_dir / 'PickedProteinGroupFDR/merged_msms.txt',
+    quan_summary = pd.read_csv(output_dir / 'ProSIMSIt/PickedProteinGroupFDR/merged_msms.txt',
                                sep='\t', usecols=usecols)
 
 
@@ -227,4 +227,4 @@ def generate_phospho_table(output_dir, mzml_dir, fasta_path):
         peptide_table, fasta_path, pspInput=False)
 
     peptide_table = peptide_table.sort_values(by=['Experiment', 'Modified sequence', 'Phosphorylations'])
-    peptide_table.to_csv(output_dir / 'phosphopeptides.txt', sep='\t', index=False)
+    peptide_table.to_csv(output_dir / 'ProSIMSIt/phosphopeptides.txt', sep='\t', index=False)
