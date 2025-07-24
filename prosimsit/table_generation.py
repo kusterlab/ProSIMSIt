@@ -192,7 +192,7 @@ def generate_phospho_table(output_dir, mzml_dir, fasta_path):
 
     if (output_dir / 'ascore_table.txt').is_file():
         logger.info(f'Existing pyAscore results found; reusing {output_dir / "ascore_table.txt"}')
-        final_results = pd.read_csv(output_dir / 'ascore_table.txt', sep='\t')
+        final_results = pd.read_csv(output_dir / 'ProSIMSIt/ascore_table.txt', sep='\t')
     else:
         final_results = perform_pyascore(psms, output_dir, mzml_dir)
 
