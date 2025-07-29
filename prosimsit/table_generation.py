@@ -333,8 +333,8 @@ def generate_phospho_table(
     psms['Phosphorylations'] = psms['peptide'].str.count(r'\[UNIMOD\:21\]')
 
     # Run or load PyAscore results and merge with PSMs
-    if (output_dir / 'ascore_table.txt').is_file():
-        logger.info(f'Existing pyAscore results found; reusing {output_dir / "ascore_table.txt"}')
+    if (output_dir / 'ProSIMSIt/ascore_table.txt').is_file():
+        logger.info(f'Existing pyAscore results found; reusing {output_dir / "ProSIMSIt/ascore_table.txt"}')
         final_results = pd.read_csv(output_dir / 'ProSIMSIt/ascore_table.txt', sep='\t')
     else:
         final_results = perform_pyascore(psms, output_dir, mzml_dir)
