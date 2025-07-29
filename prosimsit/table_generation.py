@@ -284,7 +284,7 @@ def perform_pyascore(
         counter += 1
 
     final_results = pd.concat(results, ignore_index=True)
-    final_results.to_csv(output_dir / 'ascore_table.txt', sep='\t', index=False)
+    final_results.to_csv(output_dir / 'ProSIMSIt/ascore_table.txt', sep='\t', index=False)
     return final_results
 
 
@@ -311,7 +311,7 @@ def generate_phospho_table(
     psms = pd.concat([psms, pd.read_csv(decoy_file, sep='\t')])
 
     # Load quan data
-    quan_file = output_dir / 'PickedProteinGroupFDR/merged_msms.txt'
+    quan_file = output_dir / 'ProSIMSIt/PickedProteinGroupFDR/merged_msms.txt'
 
     # First read the header to get column names, then read only relevant columns; needed to handle different TMT plexes
     quan_summary = pd.read_csv(quan_file, sep='\t', nrows=0)
@@ -335,7 +335,7 @@ def generate_phospho_table(
     # Run or load PyAscore results and merge with PSMs
     if (output_dir / 'ascore_table.txt').is_file():
         logger.info(f'Existing pyAscore results found; reusing {output_dir / "ascore_table.txt"}')
-        final_results = pd.read_csv(output_dir / 'ascore_table.txt', sep='\t')
+        final_results = pd.read_csv(output_dir / 'ProSIMSIt/ascore_table.txt', sep='\t')
     else:
         final_results = perform_pyascore(psms, output_dir, mzml_dir)
 
@@ -382,6 +382,6 @@ def generate_phospho_table(
     # Final sort and save
     peptide_table = peptide_table.sort_values(by=['Experiment', 'Modified sequence', 'Phosphorylations'])
 
-    output_file = output_dir / 'phosphopeptides.txt'
+    output_file = output_dir / 'ProSIMSIt/phosphopeptides.txt'
     peptide_table.to_csv(output_file, sep='\t', index=False)
     logger.info(f'Phosphopeptide table saved to {output_file}')
