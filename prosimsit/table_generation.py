@@ -43,10 +43,17 @@ def preprocess_for_pyascore(df: pd.DataFrame) -> pd.DataFrame:
     for unimod, replacement in unimod_replacements.items():
         df['peptide'] = df['peptide'].str.replace(unimod, replacement, regex=False)
 
+    #Converting this into an apply would be ~4.5 times as fast (maybe even more for large dfs, bc you only iterate once)
+    def replace_with_dict(s, d):
+        for key, val in d.items():
+            s = s.replace(key, val)
+        return s
+    df['peptide'] = df['peptide'].apply(lambda pep: replace_with_dict(pep, unimod_replacements))
+
     # Rename columns to match pyAscore expected format
     df = df.rename(columns={
         'peptide': 'sequence',
-        'scan': 'scan',
+        'scan': 'scan',  # Not necessary, but who cares
         'Charge': 'charge',
         'score': 'percolator score'
     })
@@ -88,8 +95,14 @@ def pyascore_scoring_with_stringio(
             csv_buffer,
             'percolatorTXT',
             mass_corrector,
+            # DRY
+            # I would define two dicts high-level, static and dynamic/variable modifications.
+            # For the MassCorrector union them, here only use the static one.
+            # This also would make the MassCorrector call more explicit, I was wondering if it's intentional
+            # that you treated static and variable in the same way there (turns out it was).
             static_mods={"n": 229.162932, "K": 229.162932, "C": 57.021464})
         psm_objects = id_parser.to_list()
+    # Why would the block throw an exception?
     finally:
         csv_buffer.close()
 
@@ -99,6 +112,7 @@ def pyascore_scoring_with_stringio(
     spectra_objects = spectra_parser.to_dict()
 
     # Configure pyAscore for phosphorylation localization
+    #Could take that from the global dictionary as well
     mod_mass = 79.966331  # Phosphorylation mass
     ascore = PyAscore(bin_size=100., n_top=10,
                       mod_group="STY",
@@ -109,9 +123,18 @@ def pyascore_scoring_with_stringio(
     ascore.add_neutral_loss('t', 97.9339)
 
     pyascore_results = []
+    #Didn't test it, but maybe it would be even faster to not convert id_parser.to_list() and then loop,
+    # but instead keep the buffer open the whole time
+    # Idk if the implementation of pyAscore allows for this
     for psm in psm_objects:
         # Check for phosphorylation modifications
         mod_select = np.isclose(psm["mod_masses"], mod_mass)
+        #I was surprised myself, but this is actually much faster for short lists
+        mod_select = [math.isclose(val, mod_mass) for val in psm["mod_masses"]]
+        #(np is faster if the list has length >200)
+        #Rel and abs tolerance have slightly different default values though, maybe need to adjust:
+        # https://docs.python.org/3/library/math.html#math.isclose vs. https://numpy.org/doc/stable/reference/generated/numpy.isclose.html
+
         nmods = np.sum(mod_select)
 
         if nmods >= 1:  # Process only phosphorylated peptides
@@ -173,6 +196,7 @@ def maxquantify_sequence(ascore_seq_column: pd.Series) -> pd.Series:
     return result
 
 
+# Not used anywhere, can be deleted?
 def take_unique_else_raise(elements: List[Any]) -> Any:
     """
     Return the unique element from a list, raise error if multiple unique elements.
@@ -185,7 +209,7 @@ def take_unique_else_raise(elements: List[Any]) -> Any:
     """
     elements = set(elements)
     if len(elements) == 1:
-        return list(elements)[0]
+        return list(elements)[0] # elements.pop() would be about 1/3 faster
     else:
         raise TypeError(f'Multiple unique elements found; {elements}')
 
@@ -234,6 +258,7 @@ def process_ascores(series: pd.Series, function: str) -> str:
     score_matrix = np.array(score_arrays)
 
     # Apply aggregation function
+    # Would be even more elegant if you just pass the function itself to process_ascores, instead of the name as a string
     if function == 'mean':
         new_scores = np.mean(score_matrix, axis=0)
     elif function == 'min':
@@ -262,6 +287,8 @@ def perform_pyascore(
     """
     # Define modification masses
     modifications = {
+        # What about other plexes? I guess 229 is fine for 6,10,11; but 16 and 18 would have different masses
+        # Maybe give the user an option already to specify.
         "n": 229.162932,    # n-term TMT6plex
         "M": 15.9949,       # Methionine oxidation
         "S": 79.966331,     # Serine phosphorylation
@@ -274,6 +301,7 @@ def perform_pyascore(
 
     results = []
     counter = 0
+    #Why is this variable called maxcounter? n_raw_files sounds more logical to me
     maxcounter = len(preprocessed_df['Raw file'].unique())
 
     logger.info(f'Processing {maxcounter} raw files with pyAscore')
@@ -305,6 +333,9 @@ def generate_phospho_table(
     """
 
     # Load PSM data
+    #Maybe irrelevant, but if you ever want to execute this on Windows, the slashes should be variable
+    #Also, the filename would best be in a config file in case it changes somewhere else in the Repo
+    #(It appears again in main.py and picked_fdr_functions.py)
     psm_file = output_dir / 'ProSIMSIt/percolator/rescore_all.percolator.psms.txt'
     decoy_file = output_dir / 'ProSIMSIt/percolator/rescore_all.percolator.decoy.psms.txt'
     psms = pd.read_csv(psm_file, sep='\t')
@@ -325,9 +356,10 @@ def generate_phospho_table(
 
     # Process PSM data
     psms = psms.rename(columns={'filename': 'Raw file', 'proteinIds': 'Proteins'})
-    psms = psms.loc[psms['q-value'] < 0.01]
+    psms = psms.loc[psms['q-value'] < 0.01] #Would maybe better be a variable
 
     # Extract scan and charge information from PSMId
+    # So 'scan' is not the same as 'scanID'? This could use more explanation - what are you using each column for?
     psms['scan'] = psms['PSMId'].str.split('-').str[-4].astype('int32')
     psms['Charge'] = psms['PSMId'].str.split('-').str[-1].astype('int8')
     psms['Phosphorylations'] = psms['peptide'].str.count(r'\[UNIMOD\:21\]')
@@ -352,6 +384,8 @@ def generate_phospho_table(
 
     # Process sequences
     psms = psms.rename(columns={'Modified sequence': 'MaxQuant sequence'})
+
+    # Same as above, this would probably also be faster if rewritten as a single apply that iterates only once
     psms['Modified sequence'] = maxquantify_sequence(psms['localized_peptide'])
 
     psms['scanID'] = psms['Raw file'] + '|' + psms['scan'].astype(str)
@@ -361,6 +395,7 @@ def generate_phospho_table(
 
     column_aggregation = {
         **{col: pd.NamedAgg(column=col, aggfunc='sum') for col in reporter_columns},
+        #I get it for the first one and the last one, but why the list compr. and ** for all others?
         **{'Number of PSMs': pd.NamedAgg(column='scanID', aggfunc='count')},
         **{'max ' + col: pd.NamedAgg(column=col, aggfunc='max') for col in ['pepscore']},
         **{'min ' + col: pd.NamedAgg(column=col, aggfunc='min') for col in ['pepscore']},
