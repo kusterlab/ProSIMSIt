@@ -129,6 +129,12 @@ def pyascore_scoring_with_stringio(
     for psm in psm_objects:
         # Check for phosphorylation modifications
         mod_select = np.isclose(psm["mod_masses"], mod_mass)
+
+
+
+
+
+
         #I was surprised myself, but this is actually much faster for short lists
         mod_select = [math.isclose(val, mod_mass) for val in psm["mod_masses"]]
         #(np is faster if the list has length >200)
@@ -228,21 +234,21 @@ def csv_list_unique(elements: List[Any]) -> str:
     return ';'.join([str(i) for i in elements])
 
 
-def process_ascores(series: pd.Series, function: str) -> str:
+def process_ascores(series: pd.Series, func: function) -> str:
     """
     Process Ascore values using specified aggregation function.
 
     :param series: Series containing semicolon-separated Ascore values
-    :param function: Aggregation function name ('mean', 'min', or 'max')
+    :param func: Aggregation function name ('mean', 'min', or 'max')
 
     :return: Semicolon-separated string of processed scores or NaN if no valid data
 
     :raises ValueError: If unsupported function is specified
     """
 
-    valid_functions = {'mean', 'min', 'max'}
-    if function not in valid_functions:
-        raise ValueError(f"Unsupported function: {function}. Must be one of {valid_functions}")
+    # valid_functions = {'mean', 'min', 'max'}
+    # if function not in valid_functions:
+    #     raise ValueError(f"Unsupported function: {function}. Must be one of {valid_functions}")
 
     # Split each entry by semicolon and convert to float arrays
     score_arrays = []
@@ -259,12 +265,14 @@ def process_ascores(series: pd.Series, function: str) -> str:
 
     # Apply aggregation function
     # Would be even more elegant if you just pass the function itself to process_ascores, instead of the name as a string
-    if function == 'mean':
-        new_scores = np.mean(score_matrix, axis=0)
-    elif function == 'min':
-        new_scores = np.min(score_matrix, axis=0)
-    elif function == 'max':
-        new_scores = np.max(score_matrix, axis=0)
+    new_scores = func(score_matrix, axis=0)
+
+    # if function == 'mean':
+    #     new_scores = np.mean(score_matrix, axis=0)
+    # elif function == 'min':
+    #     new_scores = np.min(score_matrix, axis=0)
+    # elif function == 'max':
+    #     new_scores = np.max(score_matrix, axis=0)
 
     return ';'.join(f"{score:.1f}" for score in new_scores)
 
